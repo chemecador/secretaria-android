@@ -13,12 +13,12 @@ plugins {
 
 android {
     namespace = "com.chemecador.secretaria"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.chemecador.secretaria"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 23
         versionName = "2.1.1"
 
@@ -59,8 +59,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
     }
     buildFeatures {
         compose = true
