@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -57,6 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -198,6 +200,7 @@ fun NoteDetailScreen(
                                     onValueChange = { titleText = it },
                                     label = { Text(stringResource(R.string.label_note_title)) },
                                     isError = titleText.isBlank(),
+                                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                                     modifier = Modifier.fillMaxWidth()
                                 )
                                 if (titleText.isBlank()) {
@@ -226,6 +229,7 @@ fun NoteDetailScreen(
                                     value = contentText,
                                     onValueChange = { contentText = it },
                                     label = { Text(stringResource(R.string.label_note_content)) },
+                                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .heightIn(min = dimensionResource(R.dimen.margin_xxlarge)),

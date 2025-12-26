@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -19,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import com.chemecador.secretaria.R
 
 @Composable
@@ -47,6 +49,7 @@ fun CreateNoteDialog(
                     label = { Text(stringResource(R.string.label_name_note)) },
                     isError = titleError,
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     modifier = Modifier.fillMaxWidth()
                 )
                 if (titleError) {
@@ -65,6 +68,7 @@ fun CreateNoteDialog(
                     value = observations,
                     onValueChange = { observations = it },
                     label = { Text(stringResource(R.string.label_observations_optional)) },
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = dimensionResource(R.dimen.text_field_min_height)),
