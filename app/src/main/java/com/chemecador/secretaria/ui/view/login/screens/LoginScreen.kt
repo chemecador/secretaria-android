@@ -3,7 +3,6 @@ package com.chemecador.secretaria.ui.view.login.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.chemecador.secretaria.R
 import com.chemecador.secretaria.ui.theme.Typography
@@ -46,6 +46,7 @@ import com.chemecador.secretaria.ui.theme.Typography
 fun LoginScreen(
     modifier: Modifier = Modifier,
     isLoading: Boolean,
+    errorMessage: String? = null,
     onLogin: (String, String) -> Unit,
     onSignup: (String, String) -> Unit,
     onGoogleSignIn: () -> Unit,
@@ -53,15 +54,14 @@ fun LoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    Box(modifier = modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
             Card(
                 shape = MaterialTheme.shapes.medium,
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
@@ -137,6 +137,21 @@ fun LoginScreen(
                         }
                     }
 
+                    if (isLoading || errorMessage != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    if (isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    } else if (errorMessage != null) {
+                        Text(
+                            text = errorMessage,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(24.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -167,7 +182,7 @@ fun LoginScreen(
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Iniciar sesión con Google")
+                        Text(stringResource(R.string.label_login_google))
                     }
                     Spacer(modifier = Modifier.height(32.dp))
                     Row(
@@ -192,10 +207,4 @@ fun LoginScreen(
                 }
             }
         }
-        if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
-    }
 }

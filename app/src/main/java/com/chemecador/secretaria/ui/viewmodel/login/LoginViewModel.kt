@@ -10,7 +10,6 @@ import com.chemecador.secretaria.utils.Resource
 import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -35,6 +34,11 @@ class LoginViewModel @Inject constructor(
     private var _signupError = MutableStateFlow<String?>(null)
     val signupError: StateFlow<String?> = _signupError
 
+    fun clearErrors() {
+        _loginError.value = null
+        _signupError.value = null
+    }
+
     fun signup(user: String, password: String, onSignupSuccess: () -> Unit) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -48,8 +52,6 @@ class LoginViewModel @Inject constructor(
                 _signupError.value = null
             } else {
                 _signupError.value = result.exceptionOrNull()?.message
-                delay(100)
-                _signupError.value = null
             }
             _isLoading.value = false
         }
@@ -72,7 +74,6 @@ class LoginViewModel @Inject constructor(
                 }
             } else {
                 _loginError.emit(result.exceptionOrNull()?.message)
-                _loginError.emit(null)
             }
 
             _isLoading.value = false
@@ -96,7 +97,6 @@ class LoginViewModel @Inject constructor(
             } else {
                 val errorMessage = result.exceptionOrNull()?.message ?: "Error"
                 _loginError.emit(errorMessage)
-                _loginError.emit(null)
             }
 
             _isLoading.value = false

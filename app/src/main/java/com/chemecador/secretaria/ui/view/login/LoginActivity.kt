@@ -17,13 +17,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.chemecador.secretaria.ui.view.main.MainActivity
+import androidx.compose.ui.res.stringResource
 import com.chemecador.secretaria.R
 import com.chemecador.secretaria.ui.theme.SecretariaTheme
 import com.chemecador.secretaria.ui.view.login.screens.LoginScreen
+import com.chemecador.secretaria.ui.view.main.MainActivity
 import com.chemecador.secretaria.ui.viewmodel.login.LoginViewModel
 import com.chemecador.secretaria.utils.Resource
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -59,6 +62,13 @@ class LoginActivity : ComponentActivity() {
                 val isLoading by viewModel.isLoading.collectAsState()
                 val authState by viewModel.authState.observeAsState(initial = null)
                 val loginError by viewModel.loginError.collectAsState(initial = null)
+                val signupError by viewModel.signupError.collectAsState(initial = null)
+                var validationError by remember { mutableStateOf<String?>(null) }
+                val errorMessage = loginError ?: signupError ?: validationError
+
+                val errorEmailInvalid = stringResource(R.string.error_email_invalid)
+                val errorPasswordInvalid = stringResource(R.string.error_password_invalid)
+                val errorGoogleLogin = stringResource(R.string.error_login)
 
                 val googleSignInLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.StartActivityForResult()
@@ -80,7 +90,7 @@ class LoginActivity : ComponentActivity() {
                             }
                         } catch (e: ApiException) {
                             CoroutineScope(Dispatchers.Main).launch {
-                                snackbarHostState.showSnackbar("Error al iniciar sesión con Google: ${e.localizedMessage}")
+                                snackbarHostState.showSnackbar(errorGoogleLogin + e.localizedMessage)
                             }
                         }
                     }
@@ -93,30 +103,23 @@ class LoginActivity : ComponentActivity() {
                     }
                 }
 
-                LaunchedEffect(loginError) {
-                    loginError?.let { errorMsg ->
-                        snackbarHostState.showSnackbar(errorMsg)
-                    }
-                }
-
                 Scaffold(
                     snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
                 ) { paddingValues ->
                     LoginScreen(
                         modifier = Modifier.padding(paddingValues),
                         isLoading = isLoading,
+                        errorMessage = errorMessage,
                         onLogin = { email, password ->
+                            validationError = null
+                            viewModel.clearErrors()
                             when {
                                 !isValidEmail(email) -> {
-                                    CoroutineScope(Dispatchers.Main).launch {
-                                        snackbarHostState.showSnackbar("Introduce un email válido")
-                                    }
+                                    validationError = errorEmailInvalid
                                 }
 
                                 password.length < 6 -> {
-                                    CoroutineScope(Dispatchers.Main).launch {
-                                        snackbarHostState.showSnackbar("La contraseña debe tener al menos 6 caracteres")
-                                    }
+                                    validationError = errorPasswordInvalid
                                 }
 
                                 else -> {
@@ -133,17 +136,15 @@ class LoginActivity : ComponentActivity() {
                             }
                         },
                         onSignup = { email, password ->
+                            validationError = null
+                            viewModel.clearErrors()
                             when {
                                 !isValidEmail(email) -> {
-                                    CoroutineScope(Dispatchers.Main).launch {
-                                        snackbarHostState.showSnackbar("Introduce un email válido")
-                                    }
+                                    validationError = errorEmailInvalid
                                 }
 
                                 password.length < 6 -> {
-                                    CoroutineScope(Dispatchers.Main).launch {
-                                        snackbarHostState.showSnackbar("La contraseña debe tener al menos 6 caracteres")
-                                    }
+                                    validationError = errorPasswordInvalid
                                 }
 
                                 else -> {
