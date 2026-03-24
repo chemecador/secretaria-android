@@ -17,6 +17,7 @@
         <item>Nombre ↓</item>
         <item>Fecha ↑</item>
         <item>Fecha ↓</item>
+        <item>Orden personalizado</item>
     </string-array>
 
 </resources>

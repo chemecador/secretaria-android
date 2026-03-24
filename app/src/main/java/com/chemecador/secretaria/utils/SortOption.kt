@@ -4,5 +4,6 @@ enum class SortOption {
     NAME_ASC,
     NAME_DESC,
     DATE_ASC,
-    DATE_DESC
+    DATE_DESC,
+    CUSTOM
 }

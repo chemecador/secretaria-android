@@ -1,9 +1,11 @@
 package com.chemecador.secretaria.ui.view.main.screens
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +20,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -43,19 +46,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.chemecador.secretaria.R
 import com.chemecador.secretaria.data.model.Note
@@ -91,6 +101,7 @@ fun NotesScreen(
         SortOption.NAME_DESC -> sortOptions[1]
         SortOption.DATE_ASC -> sortOptions[2]
         SortOption.DATE_DESC -> sortOptions[3]
+        SortOption.CUSTOM -> sortOptions[4]
     }
 
     LaunchedEffect(listId) {
@@ -156,7 +167,8 @@ fun NotesScreen(
                                 0 -> SortOption.NAME_ASC
                                 1 -> SortOption.NAME_DESC
                                 2 -> SortOption.DATE_ASC
-                                else -> SortOption.DATE_DESC
+                                3 -> SortOption.DATE_DESC
+                                else -> SortOption.CUSTOM
                             }
                             DropdownMenuItem(
                                 text = { Text(title) },
@@ -190,15 +202,19 @@ fun NotesScreen(
                     )
 
                     is Resource.Success -> {
-                        val notes = state.data.orEmpty()
-                            .let { unsorted ->
-                                when (sortOption) {
-                                    SortOption.NAME_ASC -> unsorted.sortedBy { it.title.lowercase() }
-                                    SortOption.NAME_DESC -> unsorted.sortedByDescending { it.title.lowercase() }
-                                    SortOption.DATE_ASC -> unsorted.sortedBy { it.date }
-                                    SortOption.DATE_DESC -> unsorted.sortedByDescending { it.date }
+                        val notes = remember(state.data, sortOption) {
+                            state.data.orEmpty()
+                                .let { unsorted ->
+                                    when (sortOption) {
+                                        SortOption.NAME_ASC -> unsorted.sortedBy { it.title.lowercase() }
+                                        SortOption.NAME_DESC -> unsorted.sortedByDescending { it.title.lowercase() }
+                                        SortOption.DATE_ASC -> unsorted.sortedBy { it.date }
+                                        SortOption.DATE_DESC -> unsorted.sortedByDescending { it.date }
+                                        SortOption.CUSTOM -> unsorted.sortedBy { it.order }
+                                    }
                                 }
-                            }
+                        }
+
                         if (notes.isEmpty()) {
                             Text(
                                 text = stringResource(R.string.label_empty_notes),
@@ -207,18 +223,15 @@ fun NotesScreen(
                                 textAlign = TextAlign.Center
                             )
                         } else {
-                            LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                items(notes) { note ->
-                                    NoteItem(
-                                        note = note,
-                                        onClick = { onNoteClick(note.id) }
-                                    )
+                            DraggableNotesList(
+                                notes = notes,
+                                showOrder = sortOption == SortOption.CUSTOM,
+                                onNoteClick = onNoteClick,
+                                onReorder = { reordered ->
+                                    sortOption = SortOption.CUSTOM
+                                    viewModel.reorderNotes(listId, reordered)
                                 }
-                            }
+                            )
                         }
                     }
                 }
@@ -245,9 +258,113 @@ fun NotesScreen(
 }
 
 @Composable
+private fun DraggableNotesList(
+    notes: List<Note>,
+    showOrder: Boolean,
+    onNoteClick: (noteId: String) -> Unit,
+    onReorder: (List<Note>) -> Unit
+) {
+    val lazyListState = rememberLazyListState()
+    val dragList = remember(notes) { notes.toMutableStateList() }
+    var draggedIndex by remember { mutableIntStateOf(-1) }
+    var dragOffset by remember { mutableFloatStateOf(0f) }
+
+    LazyColumn(
+        state = lazyListState,
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectDragGesturesAfterLongPress(
+                    onDragStart = { offset ->
+                        lazyListState.layoutInfo.visibleItemsInfo
+                            .firstOrNull { item ->
+                                offset.y.toInt() in item.offset..(item.offset + item.size)
+                            }
+                            ?.let { item ->
+                                draggedIndex = item.index
+                                dragOffset = 0f
+                            }
+                    },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        dragOffset += dragAmount.y
+
+                        val dragged = lazyListState.layoutInfo.visibleItemsInfo
+                            .firstOrNull { it.index == draggedIndex }
+                            ?: return@detectDragGesturesAfterLongPress
+
+                        val draggedCenter = dragged.offset + dragged.size / 2 + dragOffset.toInt()
+
+                        val target = lazyListState.layoutInfo.visibleItemsInfo
+                            .firstOrNull { item ->
+                                item.index != draggedIndex &&
+                                        draggedCenter in item.offset..(item.offset + item.size)
+                            }
+
+                        if (target != null) {
+                            val targetIndex = target.index
+                            dragList.apply {
+                                val item = removeAt(draggedIndex)
+                                add(targetIndex, item)
+                            }
+                            val offsetAdjust = if (targetIndex > draggedIndex) {
+                                -target.size.toFloat()
+                            } else {
+                                target.size.toFloat()
+                            }
+                            dragOffset += offsetAdjust
+                            draggedIndex = targetIndex
+                        }
+                    },
+                    onDragEnd = {
+                        if (draggedIndex >= 0) {
+                            onReorder(dragList.toList())
+                        }
+                        draggedIndex = -1
+                        dragOffset = 0f
+                    },
+                    onDragCancel = {
+                        draggedIndex = -1
+                        dragOffset = 0f
+                    }
+                )
+            },
+        contentPadding = PaddingValues(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        itemsIndexed(dragList, key = { _, note -> note.id }) { index, note ->
+            val isDragging = index == draggedIndex
+            val elevation by animateDpAsState(
+                targetValue = if (isDragging) 8.dp else 0.dp,
+                label = "dragElevation"
+            )
+
+            NoteItem(
+                note = note,
+                orderNumber = if (showOrder) index + 1 else null,
+                onClick = { if (!isDragging) onNoteClick(note.id) },
+                modifier = Modifier
+                    .then(
+                        if (isDragging) {
+                            Modifier
+                                .zIndex(1f)
+                                .graphicsLayer { translationY = dragOffset }
+                                .shadow(elevation, RoundedCornerShape(8.dp))
+                        } else {
+                            Modifier.animateItem()
+                        }
+                    )
+            )
+        }
+    }
+}
+
+@Composable
 fun NoteItem(
     note: Note,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    orderNumber: Int? = null
 ) {
     val dateString = remember(note.date) {
         val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
@@ -256,55 +373,78 @@ fun NoteItem(
 
     Card(
         shape = RoundedCornerShape(8.dp),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = note.title,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        textDecoration = if (note.completed) TextDecoration.LineThrough else TextDecoration.None
-                    )
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = note.content,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        textDecoration = if (note.completed) TextDecoration.LineThrough else TextDecoration.None
-                    ),
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (orderNumber != null) {
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.secondary,
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = dateString,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = note.creator,
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            text = orderNumber.toString(),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.surface
                         )
                     }
-                    if (note.completed) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = stringResource(R.string.label_completed),
-                            tint = MaterialTheme.colorScheme.primary
+                    Spacer(modifier = Modifier.width(12.dp))
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = note.title,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            textDecoration = if (note.completed) TextDecoration.LineThrough else TextDecoration.None
                         )
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = note.content,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            textDecoration = if (note.completed) TextDecoration.LineThrough else TextDecoration.None
+                        ),
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = dateString,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = note.creator,
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            )
+                        }
+                        if (note.completed) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = stringResource(R.string.label_completed),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
             }

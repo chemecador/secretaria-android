@@ -37,9 +37,7 @@ class NotesViewModel @Inject constructor(
             _notes.value = Resource.Loading()
             when (val result = repository.getNotes(listId)) {
                 is Resource.Success -> {
-                    val sorted = result.data.orEmpty()
-                        .sortedByDescending { it.date }
-                    _notes.value = Resource.Success(sorted)
+                    _notes.value = result
                 }
 
                 is Resource.Error -> {
@@ -47,14 +45,19 @@ class NotesViewModel @Inject constructor(
                     _error.emit(result.message ?: res.getString(R.string.error_unknown))
                 }
 
-                else -> {} /* Resource.Loading: do nothing */
+                is Resource.Loading -> { /* do nothing */
+                }
             }
         }
     }
 
     fun createNote(listId: String, note: Note) {
         viewModelScope.launch {
-            when (val result = repository.createNote(listId, note)) {
+            val currentNotes = (_notes.value as? Resource.Success)?.data.orEmpty()
+            val nextOrder = if (currentNotes.isEmpty()) 0 else currentNotes.maxOf { it.order } + 1
+            val noteWithOrder = note.copy(order = nextOrder)
+
+            when (val result = repository.createNote(listId, noteWithOrder)) {
                 is Resource.Success -> {
                     fetchNotes(listId)
                 }
@@ -63,7 +66,20 @@ class NotesViewModel @Inject constructor(
                     _error.emit(result.message ?: res.getString(R.string.error_creating_note))
                 }
 
-                else -> {} /* Resource.Loading: do nothing */
+                is Resource.Loading -> { /* do nothing */
+                }
+            }
+        }
+    }
+
+    fun reorderNotes(listId: String, reorderedList: List<Note>) {
+        viewModelScope.launch {
+            _notes.value = Resource.Success(reorderedList)
+
+            val result = repository.reorderNotes(listId, reorderedList)
+            if (result is Resource.Error) {
+                _error.emit(result.message ?: res.getString(R.string.error_updating_note))
+                fetchNotes(listId)
             }
         }
     }

@@ -87,6 +87,7 @@ fun NotesListsScreen(
         SortOption.NAME_DESC -> sortOptions[1]
         SortOption.DATE_ASC -> sortOptions[2]
         SortOption.DATE_DESC -> sortOptions[3]
+        SortOption.CUSTOM -> sortOptions[4]
     }
 
     LaunchedEffect(viewModel.updateStatus) {
@@ -169,7 +170,8 @@ fun NotesListsScreen(
                                 0 -> SortOption.NAME_ASC
                                 1 -> SortOption.NAME_DESC
                                 2 -> SortOption.DATE_ASC
-                                else -> SortOption.DATE_DESC
+                                3 -> SortOption.DATE_DESC
+                                else -> SortOption.CUSTOM
                             }
                             DropdownMenuItem(
                                 text = { Text(title) },
@@ -207,6 +209,7 @@ fun NotesListsScreen(
                                     SortOption.NAME_DESC -> unsorted.sortedByDescending { it.name.lowercase() }
                                     SortOption.DATE_ASC -> unsorted.sortedBy { it.date }
                                     SortOption.DATE_DESC -> unsorted.sortedByDescending { it.date }
+                                    SortOption.CUSTOM -> unsorted.sortedByDescending { it.date }
                                 }
                             }
                         if (lists.isEmpty()) {
@@ -355,4 +358,3 @@ fun NotesListItem(
         }
     }
 }
-

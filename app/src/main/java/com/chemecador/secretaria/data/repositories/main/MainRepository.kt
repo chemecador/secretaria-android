@@ -15,6 +15,7 @@ interface MainRepository {
     suspend fun getNote(listId: String, noteId: String): Resource<Note>
     suspend fun editNote(listId: String, note: Note): Resource<Unit>
     suspend fun deleteNote(listId: String, noteId: String): Resource<Unit>
+    suspend fun reorderNotes(listId: String, notes: List<Note>): Resource<Unit>
     suspend fun getContributors(listId: String): Flow<Resource<List<String>>>
     suspend fun shareList(listId: String, friendId: String): Resource<Unit>
     suspend fun unshareList(listId: String, friendId: String): Resource<Unit>

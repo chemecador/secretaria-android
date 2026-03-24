@@ -180,7 +180,6 @@ class MainRepositoryImpl @Inject constructor(
                 ?: return Resource.Error(res.getString(R.string.error_fetching_lists))
 
             val snapshot = listDocument.reference.collection(NOTES)
-                .orderBy(DATE, Query.Direction.DESCENDING)
                 .get()
                 .await()
 
@@ -259,6 +258,32 @@ class MainRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e)
             Resource.Error(res.getString(R.string.error_deleting_note))
+        }
+    }
+
+    override suspend fun reorderNotes(listId: String, notes: List<Note>): Resource<Unit> {
+        return try {
+            val userId = userRepository.getUserId()
+                ?: return Resource.Error(res.getString(R.string.error_user_not_auth))
+
+            val listSnapshot = firestore.collectionGroup(NOTES_LIST)
+                .whereArrayContains(CONTRIBUTORS, userId)
+                .get()
+                .await()
+
+            val listDocument = listSnapshot.documents.firstOrNull { it.id == listId }
+                ?: return Resource.Error(res.getString(R.string.error_fetching_lists))
+
+            val batch = firestore.batch()
+            notes.forEachIndexed { index, note ->
+                val noteRef = listDocument.reference.collection(NOTES).document(note.id)
+                batch.update(noteRef, "order", index)
+            }
+            batch.commit().await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Timber.e(e)
+            Resource.Error(res.getString(R.string.error_updating_note))
         }
     }
 
