@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.google.services)
     alias(libs.plugins.android.hilt)
     alias(libs.plugins.firebase.crashlytics)
-    kotlin("kapt")
+    alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.kotlin.compose)
 }
 
@@ -111,7 +111,7 @@ dependencies {
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.runtime.livedata)
-    kapt(libs.hilt.android.compiler)
+    ksp(libs.hilt.android.compiler)
 
 
     // Testing
