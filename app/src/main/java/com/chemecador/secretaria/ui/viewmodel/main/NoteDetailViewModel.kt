@@ -22,10 +22,8 @@ class NoteDetailViewModel @Inject constructor(
     val note: LiveData<Resource<Note>> get() = _note
 
     private val _updateStatus = MutableLiveData<Resource<Unit>>()
-    val updateStatus: LiveData<Resource<Unit>> = _updateStatus
 
     private val _deleteStatus = MutableLiveData<Resource<Unit>>()
-    val deleteStatus: LiveData<Resource<Unit>> = _deleteStatus
 
     fun getNote(listId: String, noteId: String) {
         viewModelScope.launch {

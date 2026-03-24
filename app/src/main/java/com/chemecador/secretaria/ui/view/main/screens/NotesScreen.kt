@@ -66,7 +66,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.chemecador.secretaria.R
 import com.chemecador.secretaria.data.model.Note
 import com.chemecador.secretaria.ui.view.components.CreateNoteDialog

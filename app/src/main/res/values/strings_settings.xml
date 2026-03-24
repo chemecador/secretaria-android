@@ -5,8 +5,6 @@
     <string name="label_mail_subject">Contacto desde Secretaria</string>
     <string name="label_contact_us">¿Quieres ponerte en contacto con nosotros?</string>
     <string name="btn_contact_us">¡Contáctanos!</string>
-    <string name="label_choose_theme">Seleccionar tema</string>
-    <string name="label_version_history">Historial de versiones</string>
 
 
     <!-- Colors -->

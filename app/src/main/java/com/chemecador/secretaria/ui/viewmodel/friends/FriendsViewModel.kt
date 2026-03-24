@@ -64,7 +64,7 @@ class FriendsViewModel @Inject constructor(
     val addFriendStatus: SharedFlow<Resource<Unit>> = _addFriendStatus.asSharedFlow()
 
     private val _cancelRequestStatus = MutableSharedFlow<Resource<Unit>>(replay = 1)
-    val cancelRequestStatus: SharedFlow<Resource<Unit>> = _cancelRequestStatus.asSharedFlow()
+
 
     fun getCurrentUserId() = FirebaseAuth.getInstance().currentUser?.uid
 

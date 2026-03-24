@@ -39,7 +39,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.chemecador.secretaria.R
 import com.chemecador.secretaria.data.model.Friendship
 import com.chemecador.secretaria.ui.view.components.ConfirmationDialog

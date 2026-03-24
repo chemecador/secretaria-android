@@ -1,10 +1,8 @@
 package com.chemecador.secretaria.data.services
 
-import android.app.Activity
 import com.chemecador.secretaria.R
 import com.chemecador.secretaria.core.Constants
 import com.chemecador.secretaria.data.provider.ResourceProvider
-import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -12,19 +10,12 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.PhoneAuthCredential
-import com.google.firebase.auth.PhoneAuthOptions
-import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import java.util.Calendar
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 class AuthService @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
@@ -139,40 +130,6 @@ class AuthService @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e)
             Result.failure(Exception("${res.getString(R.string.error_login)} + ${e.message}"))
-        }
-    }
-
-    fun loginWithPhone(
-        phoneNumber: String,
-        activity: Activity,
-        callback: PhoneAuthProvider.OnVerificationStateChangedCallbacks
-    ) {
-
-        // For testing purposes:
-        // firebaseAuth.firebaseAuthSettings.setAutoRetrievedSmsCodeForPhoneNumber("+34 123456789", "123456")
-
-        val options = PhoneAuthOptions.newBuilder(firebaseAuth).setPhoneNumber(phoneNumber)
-            .setTimeout(60L, TimeUnit.SECONDS).setActivity(activity).setCallbacks(callback).build()
-
-        PhoneAuthProvider.verifyPhoneNumber(options)
-    }
-
-    suspend fun verifyCode(verificationCode: String, phoneCode: String): Result<FirebaseUser?> {
-        val credentials = PhoneAuthProvider.getCredential(verificationCode, phoneCode)
-        return completeRegisterWithCredential(credentials)
-    }
-
-    suspend fun completeRegisterWithPhoneVerification(credentials: PhoneAuthCredential) =
-        completeRegisterWithCredential(credentials)
-
-    private suspend fun completeRegisterWithCredential(credential: AuthCredential): Result<FirebaseUser?> {
-        return suspendCancellableCoroutine { cancellableContinuation ->
-            firebaseAuth.signInWithCredential(credential).addOnSuccessListener {
-                cancellableContinuation.resume(Result.success(it.user))
-            }.addOnFailureListener {
-                cancellableContinuation.resumeWithException(it)
-                Timber.e(it)
-            }
         }
     }
 

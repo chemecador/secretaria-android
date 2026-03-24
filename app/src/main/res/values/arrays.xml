@@ -1,17 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="theme_options">
-        <item>Predeterminado del sistema</item>
-        <item>Claro</item>
-        <item>Oscuro</item>
-    </string-array>
-
-    <string-array name="theme_values">
-        <item>system</item>
-        <item>light</item>
-        <item>dark</item>
-    </string-array>
-
     <string-array name="sort_options">
         <item>Nombre ↑</item>
         <item>Nombre ↓</item>

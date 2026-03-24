@@ -36,10 +36,6 @@ class UserRepository @Inject constructor(
         return user?.email ?: user?.displayName ?: user?.phoneNumber
     }
 
-    fun isAnonymousUser(): Boolean {
-        return authService.getUser()?.isAnonymous == true
-    }
-
     suspend fun signInAnonymously(): FirebaseUser? {
         return authService.signInAnonymously()
     }

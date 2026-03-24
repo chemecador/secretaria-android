@@ -2,7 +2,6 @@ package com.chemecador.secretaria.data.repositories.main
 
 import com.chemecador.secretaria.R
 import com.chemecador.secretaria.core.Constants.CONTRIBUTORS
-import com.chemecador.secretaria.core.Constants.DATE
 import com.chemecador.secretaria.core.Constants.NOTES
 import com.chemecador.secretaria.core.Constants.NOTES_LIST
 import com.chemecador.secretaria.core.Constants.USERS
@@ -13,7 +12,6 @@ import com.chemecador.secretaria.data.repositories.UserRepository
 import com.chemecador.secretaria.utils.Resource
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -288,10 +286,10 @@ class MainRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getContributors(listId: String): Flow<Resource<List<String>>> = flow {
-        emit(Resource.Loading<List<String>>())
+        emit(Resource.Loading())
         try {
             val userId = userRepository.getUserId()
-                ?: return@flow emit(Resource.Error<List<String>>(res.getString(R.string.error_user_not_auth)))
+                ?: return@flow emit(Resource.Error(res.getString(R.string.error_user_not_auth)))
 
             val snapshot = firestore.collectionGroup(NOTES_LIST)
                 .whereArrayContains(CONTRIBUTORS, userId)
@@ -299,7 +297,7 @@ class MainRepositoryImpl @Inject constructor(
                 .await()
 
             val listDoc = snapshot.documents.firstOrNull { it.id == listId }
-                ?: return@flow emit(Resource.Error<List<String>>(res.getString(R.string.error_fetching_lists)))
+                ?: return@flow emit(Resource.Error(res.getString(R.string.error_fetching_lists)))
 
             @Suppress("UNCHECKED_CAST")
             val contributors = listDoc.get(CONTRIBUTORS) as? List<String> ?: emptyList()
@@ -307,10 +305,9 @@ class MainRepositoryImpl @Inject constructor(
             emit(Resource.Success(contributors))
         } catch (e: Exception) {
             Timber.e(e)
-            emit(Resource.Error<List<String>>(res.getString(R.string.error_unknown)))
+            emit(Resource.Error(res.getString(R.string.error_unknown)))
         }
     }.flowOn(Dispatchers.IO)
-
 
 
     override suspend fun shareList(listId: String, friendId: String): Resource<Unit> {

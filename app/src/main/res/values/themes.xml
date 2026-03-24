@@ -44,12 +44,6 @@
         <item name="android:textColor">@color/colorText</item>
     </style>
 
-    <style name="Theme.Secretaria.TitleStyle" parent="Theme.Secretaria.TextViewStyle">
-        <item name="android:textSize">@dimen/text_size_large</item>
-        <item name="android:textColor">@color/colorText</item>
-        <item name="android:textStyle">bold</item>
-    </style>
-
     <style name="Theme.Secretaria.TextInputLayoutStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <item name="android:maxWidth">488dp</item>
     </style>
@@ -57,14 +51,6 @@
     <style name="Theme.Secretaria.TextInputEditTextStyle" parent="Widget.MaterialComponents.TextInputEditText.OutlinedBox">
         <item name="android:textColorHighlight">@color/colorPrimary</item>
         <item name="android:maxLines">1</item>
-    </style>
-
-    <style name="Theme.Secretaria.EditTextStyle" parent="Widget.AppCompat.EditText">
-        <item name="android:maxLines">1</item>
-    </style>
-
-    <style name="MenuTextStyle">
-        <item name="android:textColor">@color/colorTextDark</item>
     </style>
 
 </resources>
