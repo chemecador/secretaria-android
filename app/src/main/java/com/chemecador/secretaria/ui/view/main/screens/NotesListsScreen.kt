@@ -67,7 +67,7 @@ import java.util.Locale
 @Composable
 fun NotesListsScreen(
     viewModel: NotesListViewModel = hiltViewModel(),
-    onListClick: (listId: String, listName: String) -> Unit = { _, _ -> }
+    onListClick: (listId: String, listName: String, isOrdered: Boolean) -> Unit = { _, _, _ -> }
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var sortOption by remember { mutableStateOf(SortOption.DATE_DESC) }
@@ -233,7 +233,7 @@ fun NotesListsScreen(
                                         title = list.name,
                                         creator = list.creator,
                                         date = dateString,
-                                        onItemClick = { onListClick(list.id, list.name) },
+                                        onItemClick = { onListClick(list.id, list.name, list.ordered) },
                                         onShare = { shareDialogListId = list.id },
                                         onEdit = { editDialogData = list },
                                         onDelete = { deleteDialogListId = list.id }
@@ -258,7 +258,7 @@ fun NotesListsScreen(
             CreateListDialog(
                 showDialog = showDialog,
                 onDismiss = { showDialog = false },
-                onCreate = { name -> viewModel.createList(name) }
+                onCreate = { name, ordered -> viewModel.createList(name, ordered) }
             )
         }
     }
@@ -286,9 +286,10 @@ fun NotesListsScreen(
         CreateListDialog(
             showDialog = true,
             initialName = currentList.name,
+            initialOrdered = currentList.ordered,
             onDismiss = { editDialogData = null },
-            onCreate = { newName ->
-                viewModel.editList(currentList.copy(name = newName))
+            onCreate = { newName, ordered ->
+                viewModel.editList(currentList.copy(name = newName, ordered = ordered))
                 editDialogData = null
             }
         )

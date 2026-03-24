@@ -51,6 +51,7 @@
     <string name="label_list_updated">Lista actualizada correctamente</string>
     <string name="label_list_deleted">Lista eliminada correctamente</string>
     <string name="label_checklist">Checklist</string>
+    <string name="label_ordered_list">Lista ordenada</string>
     <string name="label_share_with_friends">¿Con quién quieres compartir esta lista?</string>
 
     <!-- Notes -->
@@ -87,7 +88,7 @@
     <string name="dialog_cancel_accept">Cancelar solicitud</string>
 
     <!-- Empty -->
-    <string name="label_empty_lists">¡Todavía no has añadido ninguna lista!\n\nPara crear una, pulsa en el botón de +</string>
+    <string name="label_empty_lists">¡Todavía no has añadido ninguna lista!\n\nPara crear una, pulsa en el botón "+"</string>
     <string name="label_empty_notes">No hay notas</string>
 
     <!-- Errors -->

@@ -82,11 +82,12 @@ import java.util.Locale
 @Composable
 fun NotesScreen(
     listId: String,
+    isOrdered: Boolean = false,
     viewModel: NotesViewModel = hiltViewModel(),
     onNoteClick: (noteId: String) -> Unit = {}
 ) {
     var showDialog by remember { mutableStateOf(false) }
-    var sortOption by remember { mutableStateOf(SortOption.DATE_DESC) }
+    var sortOption by remember { mutableStateOf(if (isOrdered) SortOption.CUSTOM else SortOption.DATE_DESC) }
     var menuExpanded by remember { mutableStateOf(false) }
 
 
@@ -131,52 +132,54 @@ fun NotesScreen(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End
-            ) {
-                Text(
-                    text = stringResource(R.string.label_order_by),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = sortLabel,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Spacer(Modifier.width(16.dp))
-                Box(Modifier.wrapContentSize()) {
-                    IconButton(onClick = { menuExpanded = true }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Sort,
-                            contentDescription = stringResource(R.string.action_sort)
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = menuExpanded,
-                        onDismissRequest = { menuExpanded = false },
-                        modifier = Modifier.wrapContentSize(Alignment.TopEnd)
-                    ) {
-                        sortOptions.forEachIndexed { index, title ->
-                            val option = when (index) {
-                                0 -> SortOption.NAME_ASC
-                                1 -> SortOption.NAME_DESC
-                                2 -> SortOption.DATE_ASC
-                                3 -> SortOption.DATE_DESC
-                                else -> SortOption.CUSTOM
-                            }
-                            DropdownMenuItem(
-                                text = { Text(title) },
-                                onClick = {
-                                    sortOption = option
-                                    menuExpanded = false
-                                }
+            if (!isOrdered) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Text(
+                        text = stringResource(R.string.label_order_by),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = sortLabel,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    Box(Modifier.wrapContentSize()) {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Sort,
+                                contentDescription = stringResource(R.string.action_sort)
                             )
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false },
+                            modifier = Modifier.wrapContentSize(Alignment.TopEnd)
+                        ) {
+                            sortOptions.forEachIndexed { index, title ->
+                                val option = when (index) {
+                                    0 -> SortOption.NAME_ASC
+                                    1 -> SortOption.NAME_DESC
+                                    2 -> SortOption.DATE_ASC
+                                    3 -> SortOption.DATE_DESC
+                                    else -> SortOption.CUSTOM
+                                }
+                                DropdownMenuItem(
+                                    text = { Text(title) },
+                                    onClick = {
+                                        sortOption = option
+                                        menuExpanded = false
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -225,7 +228,7 @@ fun NotesScreen(
                         } else {
                             DraggableNotesList(
                                 notes = notes,
-                                showOrder = sortOption == SortOption.CUSTOM,
+                                showOrder = isOrdered || sortOption == SortOption.CUSTOM,
                                 onNoteClick = onNoteClick,
                                 onReorder = { reordered ->
                                     sortOption = SortOption.CUSTOM

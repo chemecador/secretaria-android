@@ -47,7 +47,7 @@ class MainRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun createList(name: String): Resource<Unit> {
+    override suspend fun createList(name: String, ordered: Boolean): Resource<Unit> {
         return try {
 
             val userId = userRepository.getUserId()
@@ -62,7 +62,8 @@ class MainRepositoryImpl @Inject constructor(
                 name = name,
                 contributors = listOf(userId),
                 creator = username,
-                date = Timestamp.now()
+                date = Timestamp.now(),
+                ordered = ordered
             )
             firestore.collection(USERS).document(userId).collection(NOTES_LIST)
                 .document(newList.id).set(newList).await()

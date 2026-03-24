@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface MainRepository {
     suspend fun getLists(): Resource<List<NotesList>>
-    suspend fun createList(name: String): Resource<Unit>
+    suspend fun createList(name: String, ordered: Boolean = false): Resource<Unit>
     suspend fun editList(updatedList: NotesList): Resource<Unit>
     suspend fun deleteList(listId: String): Resource<Unit>
     suspend fun createNote(listId: String, note: Note): Resource<Unit>

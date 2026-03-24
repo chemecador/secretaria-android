@@ -9,5 +9,6 @@ data class NotesList(
     val creator: String = "",
     val date: Timestamp = Timestamp.now(),
     val type: String = "",
+    val ordered: Boolean = false,
     val notes: List<Note> = emptyList()
 )

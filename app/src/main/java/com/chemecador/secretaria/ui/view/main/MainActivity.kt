@@ -92,7 +92,7 @@ class MainActivity : ComponentActivity() {
 
                     Constants.NOTES_LIST -> stringResource(R.string.title_noteslist)
 
-                    "${Constants.NOTES}/{${Constants.LIST_ID}}/{${Constants.LIST_NAME}}" ->
+                    "${Constants.NOTES}/{${Constants.LIST_ID}}/{${Constants.LIST_NAME}}/{${Constants.IS_ORDERED}}" ->
                         backStackEntry?.arguments?.getString(Constants.LIST_NAME)
                             ?: stringResource(R.string.title_noteslist)
 
@@ -136,22 +136,25 @@ class MainActivity : ComponentActivity() {
         ) {
             composable(Constants.NOTES_LIST) {
                 NotesListsScreen(
-                    onListClick = { listId, listName ->
-                        navController.navigate("${Constants.NOTES}/$listId/$listName")
+                    onListClick = { listId, listName, isOrdered ->
+                        navController.navigate("${Constants.NOTES}/$listId/$listName/$isOrdered")
                     }
                 )
             }
             composable(
-                route = "${Constants.NOTES}/{${Constants.LIST_ID}}/{${Constants.LIST_NAME}}",
+                route = "${Constants.NOTES}/{${Constants.LIST_ID}}/{${Constants.LIST_NAME}}/{${Constants.IS_ORDERED}}",
                 arguments = listOf(
                     navArgument(Constants.LIST_ID) { type = NavType.StringType },
-                    navArgument(Constants.LIST_NAME) { type = NavType.StringType }
+                    navArgument(Constants.LIST_NAME) { type = NavType.StringType },
+                    navArgument(Constants.IS_ORDERED) { type = NavType.BoolType }
                 )
             ) { backStackEntry ->
                 val listId = backStackEntry.arguments?.getString(Constants.LIST_ID) ?: ""
                 val listName = backStackEntry.arguments?.getString(Constants.LIST_NAME) ?: ""
+                val isOrdered = backStackEntry.arguments?.getBoolean(Constants.IS_ORDERED) ?: false
                 NotesScreen(
                     listId = listId,
+                    isOrdered = isOrdered,
                     onNoteClick = { noteId ->
                         navController.navigate("note_detail/${listId}/${listName}/$noteId")
                     },

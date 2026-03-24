@@ -61,9 +61,9 @@ class NotesListViewModel @Inject constructor(
     }
 
 
-    fun createList(name: String) {
+    fun createList(name: String, ordered: Boolean = false) {
         viewModelScope.launch {
-            val result = repository.createList(name)
+            val result = repository.createList(name, ordered)
             if (result is Resource.Error) {
                 _error.value = result.message ?: "Error"
             } else {

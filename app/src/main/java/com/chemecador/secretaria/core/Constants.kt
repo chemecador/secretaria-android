@@ -20,6 +20,7 @@ object Constants {
     const val LIST_ID = "listId"
     const val LIST_NAME = "listName"
     const val NOTE_ID = "noteId"
+    const val IS_ORDERED = "isOrdered"
     const val ABOUT_US = "about_us"
     const val SETTINGS = "settings"
     const val FRIENDS = "friends"
